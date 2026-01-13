@@ -1,38 +1,90 @@
-      <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="uk">
 <head>
 <meta charset="UTF-8">
-<title>З чи С — 3 клас</title>
+<title>Вправа: з чи с</title>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <style>
-  body { font-family: Arial; max-width: 600px; margin: auto; }
-  .word { margin-bottom: 10px; }
+  body {
+    font-family: Arial, sans-serif;
+    background: #f2f6fb;
+    padding: 20px;
+  }
+  .card {
+    max-width: 650px;
+    background: #fff;
+    margin: auto;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0,0,0,.1);
+  }
+  h1, h2 { text-align: center; }
+  input {
+    width: 100%;
+    padding: 8px;
+    font-size: 16px;
+    margin-bottom: 15px;
+  }
+  .word {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .hint-text {
+    color: #f39c12;
+    font-weight: bold;
+  }
+  select, button {
+    padding: 6px 10px;
+    font-size: 15px;
+  }
+  button {
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    background: #4a90e2;
+    color: #fff;
+  }
+  button.hint {
+    background: #f39c12;
+  }
+  .result {
+    margin-top: 15px;
+    font-weight: bold;
+    text-align: center;
+  }
 </style>
 </head>
+
 <body>
 
-<h3>Імʼя учня</h3>
-<input id="name" placeholder="Введи імʼя">
+<div class="card">
+  <h1>Імʼя учня</h1>
+  <input id="name" placeholder="Введи імʼя">
 
-<hr>
+  <h2>Встав з або с</h2>
 
-<h2>Встав з або с</h2>
+  <div id="exercise"></div>
 
-<div id="exercise"></div>
+  <button onclick="check()">Перевірити</button>
+  <button onclick="save()">Зберегти результат</button>
 
-<button onclick="check()">Перевірити</button>
-<p id="result"></p>
-
-<button onclick="save()">Зберегти результат</button>
+  <div id="result" class="result"></div>
+</div>
 
 <script>
-const supabase = supabase.createClient(
-  'https://jwscjdbmsfzlwbrmtboz.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp3c2NqZGJtc2Z6bHdicm10Ym96Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgyMzA1MDcsImV4cCI6MjA4MzgwNjUwN30.nPXq1v-G3soR4vDQt-TYy25WkVaCRYnDqEvrvegPFYw'
+// 🔴 SUPABASE — ТВОЇ ДАНІ
+const client = supabase.createClient(
+  "https://jwscjdbmsfzlwbrmtboz.supabase.co",
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp3c2NqZGJtc2Z6bHdicm10Ym96Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgyMzA1MDcsImV4cCI6MjA4MzgwNjUwN30.nPXq1v-G3soR4vDQt-TYy25WkVaCRYnDqEvrvegPFYw"
 )
 
+// 🔹 СЛОВА
 const words = [
-  { text: "_ір", correct: "з", hint: "зір" },
+  { text: "__афе", correct: "з", hint: "кафе" },
   { text: "__тах", correct: "с", hint: "птах" },
   { text: "__ад", correct: "с", hint: "сад" },
   { text: "__ірка", correct: "з", hint: "зірка" },
@@ -41,77 +93,72 @@ const words = [
   { text: "__тіл", correct: "с", hint: "стіл" },
   { text: "__вук", correct: "з", hint: "звук" },
   { text: "__ошит", correct: "з", hint: "зошит" },
-  { text: "__ир", correct: "с", hint: "сир" }
+  { text: "__ір", correct: "с", hint: "сир" }
 ]
 
-let hintsUsed = Array(words.length).fill(false)
 let hintPoints = 0
+let usedHints = Array(words.length).fill(false)
 let lastResult = null
 
-const container = document.getElementById('exercise')
+const container = document.getElementById("exercise")
 
+// 🔹 ГЕНЕРАЦІЯ
 words.forEach((w, i) => {
-  container.innerHTML += `
-    <div class="word">
-      ${i + 1}. ${w.text}
-      <select id="a${i}">
-        <option value="">?</option>
-        <option value="з">з</option>
-        <option value="с">с</option>
-      </select>
-      <button onclick="hint(${i})">Підказка</button>
-    </div>
+  const div = document.createElement("div")
+  div.className = "word"
+  div.innerHTML = `
+    <span id="word${i}">${i+1}. ${w.text}</span>
+    <select id="a${i}">
+      <option value="">?</option>
+      <option value="з">з</option>
+      <option value="с">с</option>
+    </select>
+    <button class="hint" onclick="showHint(${i})">Підказка</button>
   `
+  container.appendChild(div)
 })
 
-function hint(i) {
-  if (!hintsUsed[i]) {
-    hintsUsed[i] = true
+// 🔹 ПІДКАЗКА В СЛОВІ
+function showHint(i) {
+  if (!usedHints[i]) {
+    usedHints[i] = true
     hintPoints += 10
-    alert('Підказка: ' + words[i].hint + ' (–10 балів)')
+    document.getElementById("word"+i).innerHTML =
+      `${i+1}. ${words[i].hint} <span class="hint-text">(–10)</span>`
   }
 }
 
+// 🔹 ПЕРЕВІРКА
 function check() {
   let correct = 0
-
   words.forEach((w, i) => {
-    if (document.getElementById('a' + i).value === w.correct) {
+    if (document.getElementById("a"+i).value === w.correct) {
       correct++
     }
   })
 
-  const wordsPercent = correct * 10
-  lastResult = {
-    wordsPercent,
-    hintPoints,
-    finalPoints: Math.max(0, wordsPercent - hintPoints)
-  }
+  const percent = correct * 10
+  lastResult = { percent, hintPoints }
 
-  document.getElementById('result').innerText =
-    `За слова: ${wordsPercent}% | Підказки: –${hintPoints} балів`
+  document.getElementById("result").innerText =
+    `За слова: ${percent}% | Підказки: –${hintPoints} балів`
 }
 
+// 🔹 ЗБЕРЕЖЕННЯ
 async function save() {
-  if (!lastResult) {
-    alert('Спочатку перевір результат')
-    return
-  }
+  if (!lastResult) return alert("Спочатку перевір")
 
-  const name = document.getElementById('name').value
-  if (!name) {
-    alert('Введи імʼя')
-    return
-  }
+  const name = document.getElementById("name").value
+  if (!name) return alert("Введи імʼя")
 
-  await supabase.from('results').insert({
+  const { error } = await client.from("results").insert({
     name: name,
-    words_percent: lastResult.wordsPercent,
-    hint_points: lastResult.hintPoints,
-    final_points: lastResult.finalPoints
+    words_percent: lastResult.percent,
+    hint_points: lastResult.hintPoints
   })
 
-  alert('Результат збережено')
+  if (error) alert("Помилка Supabase")
+  else alert("Збережено")
 }
 </script>
 
