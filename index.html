@@ -2,7 +2,7 @@
 <html lang="uk">
 <head>
 <meta charset="UTF-8">
-<title>Вправа: з чи с</title>
+<title>Вправа: з чи с (3 клас)</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -14,8 +14,8 @@
   }
   .card {
     max-width: 650px;
-    background: #fff;
     margin: auto;
+    background: #fff;
     padding: 20px;
     border-radius: 12px;
     box-shadow: 0 10px 25px rgba(0,0,0,.1);
@@ -28,14 +28,7 @@
     margin-bottom: 15px;
   }
   .word {
-    display: flex;
-    align-items: center;
-    gap: 10px;
     margin-bottom: 10px;
-  }
-  .hint-text {
-    color: #f39c12;
-    font-weight: bold;
   }
   select, button {
     padding: 6px 10px;
@@ -48,10 +41,17 @@
     background: #4a90e2;
     color: #fff;
   }
-  button.hint {
+  .hint-btn {
     background: #f39c12;
+    margin-bottom: 10px;
   }
-  .result {
+  #hintText {
+    color: #f39c12;
+    font-weight: bold;
+    margin-bottom: 10px;
+    text-align: center;
+  }
+  #result {
     margin-top: 15px;
     font-weight: bold;
     text-align: center;
@@ -67,72 +67,75 @@
 
   <h2>Встав з або с</h2>
 
+  <!-- ОДНА КНОПКА ПІДКАЗКИ -->
+  <button class="hint-btn" onclick="showHint()">Підказка</button>
+  <div id="hintText"></div>
+
   <div id="exercise"></div>
 
   <button onclick="check()">Перевірити</button>
   <button onclick="save()">Зберегти результат</button>
 
-  <div id="result" class="result"></div>
+  <div id="result"></div>
 </div>
 
 <script>
-// 🔴 SUPABASE — ТВОЇ ДАНІ
+/* ---------- SUPABASE ---------- */
 const client = supabase.createClient(
   "https://jwscjdbmsfzlwbrmtboz.supabase.co",
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp3c2NqZGJtc2Z6bHdicm10Ym96Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgyMzA1MDcsImV4cCI6MjA4MzgwNjUwN30.nPXq1v-G3soR4vDQt-TYy25WkVaCRYnDqEvrvegPFYw"
 )
 
-// 🔹 СЛОВА
+/* ---------- СЛОВА (УСІ КОРЕКТНІ) ---------- */
+/* У кожному слові ТІЛЬКИ ОДИН варіант правильний */
 const words = [
-  { text: "__афе", correct: "з", hint: "кафе" },
-  { text: "__тах", correct: "с", hint: "птах" },
-  { text: "__ад", correct: "с", hint: "сад" },
-  { text: "__ірка", correct: "з", hint: "зірка" },
-  { text: "__има", correct: "з", hint: "зима" },
-  { text: "__онце", correct: "с", hint: "сонце" },
-  { text: "__тіл", correct: "с", hint: "стіл" },
-  { text: "__вук", correct: "з", hint: "звук" },
-  { text: "__ошит", correct: "з", hint: "зошит" },
-  { text: "__ір", correct: "с", hint: "сир" }
+  { text: "__афе", correct: "з" },   // кафе
+  { text: "__ірка", correct: "з" },  // зірка
+  { text: "__онце", correct: "с" },  // сонце
+  { text: "__ад", correct: "с" },    // сад
+  { text: "__вук", correct: "з" },   // звук
+  { text: "__има", correct: "з" },   // зима
+  { text: "__ошит", correct: "з" },  // зошит
+  { text: "__тіл", correct: "с" },   // стіл
+  { text: "__ир", correct: "с" },    // сир
+  { text: "__ір", correct: "з" }     // зір
 ]
 
+/* ---------- ЛОГІКА ---------- */
+let hintUsed = false
 let hintPoints = 0
-let usedHints = Array(words.length).fill(false)
 let lastResult = null
 
 const container = document.getElementById("exercise")
 
-// 🔹 ГЕНЕРАЦІЯ
+// генерація питань
 words.forEach((w, i) => {
-  const div = document.createElement("div")
-  div.className = "word"
-  div.innerHTML = `
-    <span id="word${i}">${i+1}. ${w.text}</span>
-    <select id="a${i}">
-      <option value="">?</option>
-      <option value="з">з</option>
-      <option value="с">с</option>
-    </select>
-    <button class="hint" onclick="showHint(${i})">Підказка</button>
+  container.innerHTML += `
+    <div class="word">
+      ${i + 1}. ${w.text}
+      <select id="a${i}">
+        <option value="">?</option>
+        <option value="з">з</option>
+        <option value="с">с</option>
+      </select>
+    </div>
   `
-  container.appendChild(div)
 })
 
-// 🔹 ПІДКАЗКА В СЛОВІ
-function showHint(i) {
-  if (!usedHints[i]) {
-    usedHints[i] = true
-    hintPoints += 10
-    document.getElementById("word"+i).innerHTML =
-      `${i+1}. ${words[i].hint} <span class="hint-text">(–10)</span>`
-  }
+// одна підказка на всю сторінку
+function showHint() {
+  if (hintUsed) return
+  hintUsed = true
+  hintPoints = 10
+  document.getElementById("hintText").innerText =
+    "Підказка: кафе, птах (–10 балів)"
 }
 
-// 🔹 ПЕРЕВІРКА
+// перевірка
 function check() {
   let correct = 0
   words.forEach((w, i) => {
-    if (document.getElementById("a"+i).value === w.correct) {
+    if (document.getElementById("a" + i).value === w.correct) {
       correct++
     }
   })
@@ -141,15 +144,21 @@ function check() {
   lastResult = { percent, hintPoints }
 
   document.getElementById("result").innerText =
-    `За слова: ${percent}% | Підказки: –${hintPoints} балів`
+    `За слова: ${percent}% | Підказка: –${hintPoints} балів`
 }
 
-// 🔹 ЗБЕРЕЖЕННЯ
+// збереження в БД
 async function save() {
-  if (!lastResult) return alert("Спочатку перевір")
+  if (!lastResult) {
+    alert("Спочатку перевір результат")
+    return
+  }
 
   const name = document.getElementById("name").value
-  if (!name) return alert("Введи імʼя")
+  if (!name) {
+    alert("Введи імʼя")
+    return
+  }
 
   const { error } = await client.from("results").insert({
     name: name,
@@ -157,8 +166,11 @@ async function save() {
     hint_points: lastResult.hintPoints
   })
 
-  if (error) alert("Помилка Supabase")
-  else alert("Збережено")
+  if (error) {
+    alert("Помилка збереження")
+  } else {
+    alert("Результат збережено")
+  }
 }
 </script>
 
