@@ -67,7 +67,7 @@
 
   <h2>Встав з або с</h2>
 
-  <!-- ОДНА КНОПКА ПІДКАЗКИ -->
+  <!-- ОДНА КНОПКА ПІДКАЗКИ НА ВСЮ СТОРІНКУ -->
   <button class="hint-btn" onclick="showHint()">Підказка</button>
   <div id="hintText"></div>
 
@@ -86,19 +86,19 @@ const client = supabase.createClient(
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp3c2NqZGJtc2Z6bHdicm10Ym96Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgyMzA1MDcsImV4cCI6MjA4MzgwNjUwN30.nPXq1v-G3soR4vDQt-TYy25WkVaCRYnDqEvrvegPFYw"
 )
 
-/* ---------- СЛОВА (УСІ КОРЕКТНІ) ---------- */
-/* У кожному слові ТІЛЬКИ ОДИН варіант правильний */
+/* ---------- СЛОВА (БЕЗ ПОМИЛОК) ---------- */
+/* У кожному завданні ТІЛЬКИ ОДНА правильна літера: з АБО с */
 const words = [
-  { text: "__афе", correct: "з" },   // кафе
-  { text: "__ірка", correct: "з" },  // зірка
-  { text: "__онце", correct: "с" },  // сонце
-  { text: "__ад", correct: "с" },    // сад
-  { text: "__вук", correct: "з" },   // звук
-  { text: "__има", correct: "з" },   // зима
-  { text: "__ошит", correct: "з" },  // зошит
-  { text: "__тіл", correct: "с" },   // стіл
-  { text: "__ир", correct: "с" },    // сир
-  { text: "__ір", correct: "з" }     // зір
+  { text: "__ірка", correct: "з" },   // зірка
+  { text: "__онце", correct: "с" },   // сонце
+  { text: "__ад",   correct: "с" },   // сад
+  { text: "__вук",  correct: "з" },   // звук
+  { text: "__има",  correct: "з" },   // зима
+  { text: "__ошит", correct: "з" },   // зошит
+  { text: "__тіл",  correct: "с" },   // стіл
+  { text: "__ир",   correct: "с" },   // сир
+  { text: "__ір",   correct: "з" },   // зір
+  { text: "__елений", correct: "з" }  // зелений
 ]
 
 /* ---------- ЛОГІКА ---------- */
@@ -108,7 +108,7 @@ let lastResult = null
 
 const container = document.getElementById("exercise")
 
-// генерація питань
+// Генерація завдань
 words.forEach((w, i) => {
   container.innerHTML += `
     <div class="word">
@@ -122,7 +122,7 @@ words.forEach((w, i) => {
   `
 })
 
-// одна підказка на всю сторінку
+// ОДНА підказка на всю сторінку
 function showHint() {
   if (hintUsed) return
   hintUsed = true
@@ -131,7 +131,7 @@ function showHint() {
     "Підказка: кафе, птах (–10 балів)"
 }
 
-// перевірка
+// Перевірка
 function check() {
   let correct = 0
   words.forEach((w, i) => {
@@ -147,7 +147,7 @@ function check() {
     `За слова: ${percent}% | Підказка: –${hintPoints} балів`
 }
 
-// збереження в БД
+// Збереження в Supabase
 async function save() {
   if (!lastResult) {
     alert("Спочатку перевір результат")
