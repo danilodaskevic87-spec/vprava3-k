@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<title>З чи С — 3 клас</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  body { font-family: Arial; max-width: 600px; margin: auto; }
+  .word { margin-bottom: 10px; }
+</style>
+</head>
+<body>
+
+<h3>Імʼя учня</h3>
+<input id="name" placeholder="Введи імʼя">
+
+<hr>
+
+<h2>Встав з або с</h2>
+
+<div id="exercise"></div>
+
+<button onclick="check()">Перевірити</button>
+<p id="result"></p>
+
+<button onclick="save()">Зберегти результат</button>
+
+<script>
+const supabase = supabase.createClient(
+  'https://jwscjdbmsfzlwbrmtboz.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp3c2NqZGJtc2Z6bHdicm10Ym96Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgyMzA1MDcsImV4cCI6MjA4MzgwNjUwN30.nPXq1v-G3soR4vDQt-TYy25WkVaCRYnDqEvrvegPFYw'
+)
+
+const words = [
+  { text: "_ір", correct: "з", hint: "зір" },
+  { text: "__тах", correct: "с", hint: "птах" },
+  { text: "__ад", correct: "с", hint: "сад" },
+  { text: "__ірка", correct: "з", hint: "зірка" },
+  { text: "__има", correct: "з", hint: "зима" },
+  { text: "__онце", correct: "с", hint: "сонце" },
+  { text: "__тіл", correct: "с", hint: "стіл" },
+  { text: "__вук", correct: "з", hint: "звук" },
+  { text: "__ошит", correct: "з", hint: "зошит" },
+  { text: "__ир", correct: "с", hint: "сир" }
+]
+
+let hintsUsed = Array(words.length).fill(false)
+let hintPoints = 0
+let lastResult = null
+
+const container = document.getElementById('exercise')
+
+words.forEach((w, i) => {
+  container.innerHTML += `
+    <div class="word">
+      ${i + 1}. ${w.text}
+      <select id="a${i}">
+        <option value="">?</option>
+        <option value="з">з</option>
+        <option value="с">с</option>
+      </select>
+      <button onclick="hint(${i})">Підказка</button>
+    </div>
+  `
+})
+
+function hint(i) {
+  if (!hintsUsed[i]) {
+    hintsUsed[i] = true
+    hintPoints += 10
+    alert('Підказка: ' + words[i].hint + ' (–10 балів)')
+  }
+}
+
+function check() {
+  let correct = 0
+
+  words.forEach((w, i) => {
+    if (document.getElementById('a' + i).value === w.correct) {
+      correct++
+    }
+  })
+
+  const wordsPercent = correct * 10
+  lastResult = {
+    wordsPercent,
+    hintPoints,
+    finalPoints: Math.max(0, wordsPercent - hintPoints)
+  }
+
+  document.getElementById('result').innerText =
+    `За слова: ${wordsPercent}% | Підказки: –${hintPoints} балів`
+}
+
+async function save() {
+  if (!lastResult) {
+    alert('Спочатку перевір результат')
+    return
+  }
+
+  const name = document.getElementById('name').value
+  if (!name) {
+    alert('Введи імʼя')
+    return
+  }
+
+  await supabase.from('results').insert({
+    name: name,
+    words_percent: lastResult.wordsPercent,
+    hint_points: lastResult.hintPoints,
+    final_points: lastResult.finalPoints
+  })
+
+  alert('Результат збережено')
+}
+</script>
+
+</body>
+</html>
